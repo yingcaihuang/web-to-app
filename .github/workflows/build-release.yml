@@ -1,0 +1,58 @@
+name: Build APK Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+          
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
+        
+      - name: Generate keystore
+        run: |
+          keytool -genkey -v -keystore release.keystore \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -alias release-key \
+            -storepass webtoapp123 \
+            -keypass webtoapp123 \
+            -dname "CN=WebToApp Build, OU=Test, O=WebToApp, L=China, S=CN, C=CN"
+            
+      - name: Build debug APK
+        run: ./gradlew assembleDebug
+        
+      - name: Build release APK (signed)
+        run: ./gradlew assembleRelease \
+          -Pandroid.injected.signing.store.file=$PWD/release.keystore \
+          -Pandroid.injected.signing.store.password=webtoapp123 \
+          -Pandroid.injected.signing.key.alias=release-key \
+          -Pandroid.injected.signing.key.password=webtoapp123
+        
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
