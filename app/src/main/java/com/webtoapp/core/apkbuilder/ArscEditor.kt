@@ -307,20 +307,19 @@ class ArscEditor {
     /**
      * 强制替换图标路径（用于兼容 Adaptive Icon -> PNG 策略）
      *
-     * 与旧版本 modifyIconPathsToPng 完全一致：
-     * - 只替换 foreground 路径，让 Adaptive Icon XML 中的 foreground 引用指向我们的 PNG
-     * - 不替换 mipmap-anydpi-v26 的入口路径（保留 Adaptive Icon XML 定义）
+     * 覆盖所有可能的 foreground 资源路径：
+     * - drawable 系列：drawable, drawable-v24, drawable-anydpi-v24
+     * - mipmap 系列：各 dpi 目录（某些编译配置会把 foreground 放在 mipmap 下）
      *
      * 原理：
-     * - Adaptive Icon XML (res/mipmap-anydpi-v26/ic_launcher.xml) 包含 foreground 和 background 引用
-     * - 我们只需要把 foreground 的引用从 .xml 改成 .png
+     * - Adaptive Icon XML 包含 foreground 和 background 引用
+     * - 我们把 foreground 的引用从 .xml 改成 .png
      * - 系统解析 Adaptive Icon 时会加载我们写入的 foreground PNG
      */
     fun forceReplaceIconPaths(arscData: ByteArray): ByteArray {
         var result = arscData
 
-        // ========== 只替换 Adaptive Icon Foreground 路径（与旧版本完全一致）==========
-        // 不替换 mipmap-anydpi-v26 入口路径！保留 Adaptive Icon XML 定义
+        // ========== drawable 目录下的 foreground ==========
         result = replaceIconPathSuffix(
             result,
             "res/drawable/ic_launcher_foreground.xml",
@@ -338,6 +337,19 @@ class ArscEditor {
             "res/drawable-anydpi-v24/ic_launcher_foreground.xml",
             "res/drawable-anydpi-v24/ic_launcher_foreground.png"
         )
+
+        // ========== mipmap 目录下的 foreground（某些编译配置）==========
+        val mipmapDpis = listOf(
+            "mipmap-mdpi", "mipmap-hdpi", "mipmap-xhdpi",
+            "mipmap-xxhdpi", "mipmap-xxxhdpi", "mipmap-anydpi-v26"
+        )
+        mipmapDpis.forEach { dpi ->
+            result = replaceIconPathSuffix(
+                result,
+                "res/$dpi/ic_launcher_foreground.xml",
+                "res/$dpi/ic_launcher_foreground.png"
+            )
+        }
 
         return result
     }
