@@ -45,11 +45,7 @@ jobs:
         run: ./gradlew assembleDebug
         
       - name: Build release APK (signed)
-        run: ./gradlew assembleRelease \
-          -Pandroid.injected.signing.store.file=$PWD/release.keystore \
-          -Pandroid.injected.signing.store.password=webtoapp123 \
-          -Pandroid.injected.signing.key.alias=release-key \
-          -Pandroid.injected.signing.key.password=webtoapp123
+        run: ./gradlew assembleRelease -Pandroid.injected.signing.store.file=$PWD/release.keystore -Pandroid.injected.signing.store.password=webtoapp123 -Pandroid.injected.signing.key.alias=release-key -Pandroid.injected.signing.key.password=webtoapp123
         
       - name: Generate release notes
         id: release_notes
