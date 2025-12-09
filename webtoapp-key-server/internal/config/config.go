@@ -1,89 +1,65 @@
 package config
-package config
 
 import (
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}	return defaultVal	}		return val	if val, err := strconv.Atoi(valStr); err == nil {	valStr := getEnv(key, "")func getEnvAsInt(key string, defaultVal int) int {}	return defaultVal	}		return value	if value, exists := os.LookupEnv(key); exists {func getEnv(key string, defaultVal string) string {}	}		},			},				"http://localhost:8080",				"http://localhost:3000",			AllowedOrigins: []string{		CORS: CORSConfig{		},			TimestampTolerance: getEnvAsInt("TIMESTAMP_TOLERANCE", 300), // 5 分钟			SignatureSecret: getEnv("SIGNATURE_SECRET", "signature-secret-key"),			APIKey:          getEnv("API_KEY", ""),		API: APIConfig{		},			ExpireHours: getEnvAsInt("JWT_EXPIRE_HOURS", 24),			Secret:      getEnv("JWT_SECRET", "your-secret-key"),		JWT: JWTConfig{		},			Path: getEnv("DB_PATH", "./data/keyserver.db"),			Type: getEnv("DB_TYPE", "sqlite"),		Database: DatabaseConfig{		},			Env:  getEnv("ENV", "development"),			Port: getEnvAsInt("SERVER_PORT", 8080),		Server: ServerConfig{	return &Config{	_ = godotenv.Load()	// 加载 .env 文件（如果存在）func LoadConfig() *Config {}	AllowedOrigins []stringtype CORSConfig struct {}	TimestampTolerance int // 时间戳容差（秒）	SignatureSecret  string	APIKey           stringtype APIConfig struct {}	ExpireHours int	Secret      stringtype JWTConfig struct {}	Path string	Type string // sqlitetype DatabaseConfig struct {}	Env  string	Port inttype ServerConfig struct {}	CORS     CORSConfig	API      APIConfig	JWT      JWTConfig	Database DatabaseConfig	Server   ServerConfigtype Config struct {)	"github.com/joho/godotenv"	"os"	"log"
+	"os"
+	"strconv"
+	"time"
+)
+
+// Config 应用配置
+type Config struct {
+	// 服务器配置
+	Port           string
+	Env            string
+	LogLevel       string
+
+	// 数据库配置
+	DatabasePath string
+	DatabaseUrl  string
+
+	// JWT 配置
+	JWTSecret   string
+	TokenExpiry time.Duration
+
+	// 服务配置
+	MaxRetries     int
+	RequestTimeout time.Duration
+}
+
+// Load 从环境变量加载配置
+func Load() *Config {
+	cfg := &Config{
+		Port:         getEnv("PORT", "8080"),
+		Env:          getEnv("ENV", "development"),
+		LogLevel:     getEnv("LOG_LEVEL", "info"),
+		DatabasePath: getEnv("DATABASE_PATH", "./data/keyserver.db"),
+		JWTSecret:    getEnv("JWT_SECRET", "your-secret-key-change-in-production"),
+		MaxRetries:   getEnvInt("MAX_RETRIES", 3),
+	}
+
+	// 解析时间配置
+	tokenExpiry := getEnvInt("TOKEN_EXPIRY_HOURS", 24)
+	cfg.TokenExpiry = time.Duration(tokenExpiry) * time.Hour
+
+	requestTimeout := getEnvInt("REQUEST_TIMEOUT_SECONDS", 30)
+	cfg.RequestTimeout = time.Duration(requestTimeout) * time.Second
+
+	return cfg
+}
+
+// getEnv 获取环境变量，如果不存在则返回默认值
+func getEnv(key, defaultVal string) string {
+	if value, exists := os.LookupEnv(key); exists {
+		return value
+	}
+	return defaultVal
+}
+
+// getEnvInt 获取整数环境变量
+func getEnvInt(key string, defaultVal int) int {
+	valStr := getEnv(key, "")
+	if val, err := strconv.Atoi(valStr); err == nil {
+		return val
+	}
+	return defaultVal
+}

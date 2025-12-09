@@ -1,302 +1,347 @@
 package service
-package service
 
 import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"strings"
+	"log"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/yingcaihuang/webtoapp-key-server/internal/database"
 	"github.com/yingcaihuang/webtoapp-key-server/internal/domain"
 	"gorm.io/gorm"
 )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}	return n	}		return -n	if n < 0 {func abs(n int64) int64 {// 绝对值函数}	return s.db.Create(log).Error		}		AppVersion:   func() string { if v, ok := req.DeviceInfo["app_version"].(string); ok { return v }; return "" }(),		ErrorMessage: errorMsg,		Result:       result,		DeviceID:     req.DeviceID,		ActivationID: func() *uint64 { if activationID > 0 { return &activationID } ; return nil }(),		Action:       "verify",	log := &domain.AuditLog{func (s *ActivationService) recordAuditLog(req *domain.VerificationRequest, activationID uint64, result, errorMsg string) error {// 记录审计日志}	return s.db.Model(activation).Update("status", status).Errorfunc (s *ActivationService) updateActivationStatus(activation *domain.ActivationKey, status string) error {// 更新激活码状态}	return int(count), nil		Count(&count)		Model(&domain.DeviceRecord{}).	s.db.Where("activation_id = ?", activationID).	var count int64func (s *ActivationService) getDeviceCount(activationID uint64) (int, error) {// 获取设备数量}	}).Error		"last_activated_at": &now,		"activation_count": device.ActivationCount + 1,	return s.db.Model(&device).Updates(map[string]interface{}{	now := time.Now()	// 更新现有设备		}		return s.db.Create(&device).Error		}			device.DeviceName = deviceInfo		if deviceInfo, ok := req.DeviceInfo["model"].(string); ok {		}			ActivationID: &activation.ID,			AppID:        req.AppID,			DeviceID:     req.DeviceID,		device = domain.DeviceRecord{		// 新设备	if result.Error == gorm.ErrRecordNotFound {		result := s.db.Where("device_id = ? AND app_id = ?", req.DeviceID, req.AppID).First(&device)		var device domain.DeviceRecordfunc (s *ActivationService) recordDevice(activation *domain.ActivationKey, req *domain.VerificationRequest) error {// 记录设备}	return hex.EncodeToString(h.Sum(nil))	h.Write([]byte(data))	h := hmac.New(sha256.New, []byte(secret))	// 使用 HMAC-SHA256		data := fmt.Sprintf("%v%v%d", resp.Success, resp.Data, resp.Timestamp)	// 拼接签名数据func (s *ActivationService) generateSignature(resp *domain.VerificationResponse, secret string) string {// 生成签名}	)		hashStr[12:16],		hashStr[8:12],		hashStr[4:8],		hashStr[0:4],	return fmt.Sprintf("%s-%s-%s-%s",	hashStr := hex.EncodeToString(hash[:])[:16]	// 取前 16 个字符，分组为 XXXX-XXXX-XXXX-XXXX	hash := sha256.Sum256(u[:])	u := uuid.New()	// 生成 UUID 的 Hashfunc generateActivationCode() string {// 生成激活码}	return strings.ToUpper(strings.ReplaceAll(code, "-", ""))func normalizeCode(code string) string {// 辅助函数：标准化激活码}		}).Error			"status": "revoked",		Updates(map[string]interface{}{		Where("id = ?", id).	return s.db.Model(&domain.ActivationKey{}).func (s *ActivationService) RevokeCode(id uint64, reason string) error {// 撤销激活码}	return items, total, nil	}		return nil, 0, err	if err := query.Offset(offset).Limit(req.Limit).Find(&items).Error; err != nil {	offset := (req.Page - 1) * req.Limit	// 分页查询	query.Model(&domain.ActivationKey{}).Count(&total)	// 计算总数	}		query = query.Where("status = ?", req.Status)	if req.Status != "" {	query := s.db.Where("app_id = ?", req.AppID)	var total int64	var items []domain.ActivationKeyfunc (s *ActivationService) ListActivationCodes(req *domain.ListRequest) ([]domain.ActivationKey, int64, error) {// 获取激活码列表}	return codes, nil	}		s.db.Create(activation)		}			CreatedBy:   "system",			Notes:       req.Notes,			DeviceLimit: req.DeviceLimit,			MaxUses:     req.MaxUses,			ExpiresAt:   expiresAt,			Status:      "active",			AppID:       req.AppID,			Code:        code,		activation := &domain.ActivationKey{		// 保存到数据库		codes[i] = code		code := generateActivationCode()	for i := 0; i < req.Count; i++ {	}		expiresAt = &expTime		expTime := time.Now().AddDate(0, 0, *req.ExpiresInDays)	if req.ExpiresInDays != nil && *req.ExpiresInDays > 0 {	var expiresAt *time.Time	codes := make([]string, req.Count)func (s *ActivationService) GenerateActivationCodes(req *domain.GenerateRequest) ([]string, error) {// 生成激活码}	return resp, nil	s.recordAuditLog(req, activation.ID, "success", "")	resp.Signature = s.generateSignature(resp, signatureSecret)	// 生成签名	}		},			CreatedAt:     activation.CreatedAt.Unix() * 1000,			RemainingUses: remainingUses,			DevicesUsed:   devicesUsed,			DeviceLimit:   activation.DeviceLimit,			ExpiresAt:     &expiresAtUnix,			ActivationID:  activation.ID,		Data: &domain.ActivationData{		Timestamp: now,		Message:   "激活成功",		Success:   true,	resp := &domain.VerificationResponse{	}		remainingUses = activation.MaxUses - activation.UsedCount - 1	if activation.MaxUses > 0 {	remainingUses := 0	devicesUsed, _ := s.getDeviceCount(activation.ID)	}		expiresAtUnix = activation.ExpiresAt.Unix() * 1000	if activation.ExpiresAt != nil {	expiresAtUnix := int64(0)	// 准备响应数据	s.recordDevice(&activation, req)	// 记录设备	})		"used_at":    &now_time,		"used_count": activation.UsedCount + 1,	s.db.Model(&activation).Updates(map[string]interface{}{	now_time := time.Now()	// 更新使用记录	}		}			}, nil				Timestamp: now,				Message:   "该激活码已达到设备激活上限",				Code:      "DEVICE_LIMIT_EXCEEDED",				Success:   false,			return &domain.VerificationResponse{			s.recordAuditLog(req, activation.ID, "failed", "设备激活数超限")		if deviceCount >= *activation.DeviceLimit {		deviceCount, _ := s.getDeviceCount(activation.ID)	if activation.DeviceLimit != nil {	// 检查设备限制	}		}, nil			Timestamp: now,			Message:   "激活码使用次数已满",			Code:      "MAX_USES_EXCEEDED",			Success:   false,		return &domain.VerificationResponse{		s.recordAuditLog(req, activation.ID, "failed", "激活码使用次数已满")		s.updateActivationStatus(&activation, "used")	if activation.MaxUses > 0 && activation.UsedCount >= activation.MaxUses {	// 检查使用次数	}		}, nil			Timestamp: now,			Message:   "激活码已过期",			Code:      "CODE_EXPIRED",			Success:   false,		return &domain.VerificationResponse{		s.recordAuditLog(req, activation.ID, "failed", "激活码已过期")		s.updateActivationStatus(&activation, "expired")	if activation.ExpiresAt != nil && time.Now().After(*activation.ExpiresAt) {	// 检查过期时间	}		}, nil			Timestamp: now,			Message:   fmt.Sprintf("激活码已%s", activation.Status),			Code:      "CODE_INACTIVE",			Success:   false,		return &domain.VerificationResponse{		s.recordAuditLog(req, activation.ID, "failed", fmt.Sprintf("激活码状态异常: %s", activation.Status))	if activation.Status != "active" {	// 检查激活码状态	}		}, nil			Timestamp: now,			Message:   "激活码不存在或已过期",			Code:      "INVALID_CODE",			Success:   false,		return &domain.VerificationResponse{		s.recordAuditLog(req, 0, "failed", "激活码不存在")	if result.Error == gorm.ErrRecordNotFound {		result := s.db.Where("code = ? AND app_id = ?", normalizeCode(req.Code), req.AppID).First(&activation)	var activation domain.ActivationKey	// 查询激活码	}		}, nil			Timestamp: now,			Message:   "请求已过期",			Code:      "TIMESTAMP_INVALID",			Success:   false,		return &domain.VerificationResponse{	if abs(now-req.Timestamp) > 300 { // 5 分钟容差	now := time.Now().Unix()	// 检查时间戳（防重放）func (s *ActivationService) VerifyCode(req *domain.VerificationRequest, signatureSecret string) (*domain.VerificationResponse, error) {// 验证激活码}	return &ActivationService{db: db}func NewActivationService(db *gorm.DB) *ActivationService {}	db *gorm.DBtype ActivationService struct {
+// ActivationService 激活码服务
+type ActivationService struct {
+	db *gorm.DB
+}
+
+// NewActivationService 创建激活码服务
+func NewActivationService() *ActivationService {
+	return &ActivationService{
+		db: database.GetDB(),
+	}
+}
+
+// VerifyActivationCode 验证激活码
+func (s *ActivationService) VerifyActivationCode(
+	req *domain.VerificationRequest,
+	secretKey string,
+) (*domain.VerificationResponse, error) {
+	// 检查激活码是否存在
+	var activationKey domain.ActivationKey
+	if err := s.db.Where("code = ? AND app_id = ?", req.Code, req.AppID).First(&activationKey).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &domain.VerificationResponse{
+				Success:   false,
+				Message:   "Activation code not found",
+				Timestamp: time.Now().Unix(),
+				Code:      "CODE_NOT_FOUND",
+			}, nil
+		}
+		return nil, err
+	}
+
+	// 检查激活码状态
+	if activationKey.Status != "active" {
+		return &domain.VerificationResponse{
+			Success:   false,
+			Message:   fmt.Sprintf("Activation code is %s", activationKey.Status),
+			Timestamp: time.Now().Unix(),
+			Code:      "CODE_" + activationKey.Status,
+		}, nil
+	}
+
+	// 检查是否过期
+	if activationKey.ExpiresAt != nil && activationKey.ExpiresAt.Before(time.Now()) {
+		s.db.Model(&activationKey).Update("status", "expired")
+		return &domain.VerificationResponse{
+			Success:   false,
+			Message:   "Activation code expired",
+			Timestamp: time.Now().Unix(),
+			Code:      "CODE_EXPIRED",
+		}, nil
+	}
+
+	// 检查使用次数
+	if activationKey.MaxUses > 0 && activationKey.UsedCount >= activationKey.MaxUses {
+		s.db.Model(&activationKey).Update("status", "used")
+		return &domain.VerificationResponse{
+			Success:   false,
+			Message:   "Activation code usage limit exceeded",
+			Timestamp: time.Now().Unix(),
+			Code:      "CODE_LIMIT_EXCEEDED",
+		}, nil
+	}
+
+	// 检查设备限制
+	if activationKey.DeviceLimit != nil {
+		var deviceCount int64
+		s.db.Model(&domain.DeviceRecord{}).
+			Where("activation_id = ? AND app_id = ?", activationKey.ID, req.AppID).
+			Distinct("device_id").
+			Count(&deviceCount)
+
+		if int(deviceCount) >= *activationKey.DeviceLimit {
+			// 检查当前设备是否已激活过
+			var existingRecord domain.DeviceRecord
+			queryErr := s.db.Where("device_id = ? AND app_id = ?", req.DeviceID, req.AppID).
+				First(&existingRecord).Error
+			
+			if queryErr != nil && !errors.Is(queryErr, gorm.ErrRecordNotFound) {
+				return nil, queryErr
+			}
+
+			if errors.Is(queryErr, gorm.ErrRecordNotFound) {
+				return &domain.VerificationResponse{
+					Success:   false,
+					Message:   "Device limit exceeded",
+					Timestamp: time.Now().Unix(),
+					Code:      "DEVICE_LIMIT_EXCEEDED",
+				}, nil
+			}
+		}
+	}
+
+	// 记录设备信息或更新激活计数
+	now := time.Now()
+	_, _ = json.Marshal(req.DeviceInfo)  // 验证可序列化
+
+	var deviceRecord domain.DeviceRecord
+	result := s.db.Where("device_id = ? AND app_id = ?", req.DeviceID, req.AppID).
+		First(&deviceRecord)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		// 新设备激活
+		deviceRecord = domain.DeviceRecord{
+			DeviceID:        req.DeviceID,
+			AppID:           req.AppID,
+			ActivationID:    &activationKey.ID,
+			DeviceName:      extractDeviceInfo(req.DeviceInfo, "device_name"),
+			Model:           extractDeviceInfo(req.DeviceInfo, "model"),
+			OSVersion:       extractDeviceInfo(req.DeviceInfo, "os_version"),
+			AppVersion:      extractDeviceInfo(req.DeviceInfo, "app_version"),
+			ActivationCount: 1,
+			Status:          "active",
+		}
+		s.db.Create(&deviceRecord)
+	} else {
+		// 更新现有设备记录
+		s.db.Model(&deviceRecord).Updates(map[string]interface{}{
+			"activation_count": gorm.Expr("activation_count + 1"),
+			"last_activated_at": &now,
+		})
+	}
+
+	// 更新激活码使用状态
+	s.db.Model(&activationKey).Updates(map[string]interface{}{
+		"used_count": gorm.Expr("used_count + 1"),
+		"used_at":    &now,
+	})
+
+	// 记录审计日志
+	s.recordAuditLog(&activationKey, req, "verify", "success", "")
+
+	// 获取剩余使用次数
+	remainingUses := activationKey.MaxUses - (activationKey.UsedCount + 1)
+	if remainingUses < 0 {
+		remainingUses = 0
+	}
+
+	// 计算过期时间戳（毫秒）
+	var expiresAt *int64
+	if activationKey.ExpiresAt != nil {
+		timestamp := activationKey.ExpiresAt.UnixMilli()
+		expiresAt = &timestamp
+	}
+
+	// 获取设备使用数量
+	var devicesUsed int64
+	s.db.Model(&domain.DeviceRecord{}).
+		Where("activation_id = ?", activationKey.ID).
+		Distinct("device_id").
+		Count(&devicesUsed)
+
+	// 构建响应数据
+	activationData := &domain.ActivationData{
+		ActivationID:  activationKey.ID,
+		DevicesUsed:   int(devicesUsed),
+		DeviceLimit:   activationKey.DeviceLimit,
+		ExpiresAt:     expiresAt,
+		RemainingUses: remainingUses,
+		CreatedAt:     activationKey.CreatedAt.Unix(),
+	}
+
+	// 生成签名
+	timestamp := time.Now().Unix()
+	signature := s.generateSignature(activationData, timestamp, secretKey)
+
+	return &domain.VerificationResponse{
+		Success:   true,
+		Message:   "Activation successful",
+		Data:      activationData,
+		Signature: signature,
+		Timestamp: timestamp,
+	}, nil
+}
+
+// GenerateActivationCodes 生成激活码
+func (s *ActivationService) GenerateActivationCodes(
+	req *domain.GenerateRequest,
+) (*domain.GenerateResponse, error) {
+	var codes []domain.CodeItem
+
+	for i := 0; i < req.Count; i++ {
+		code := generateCode()
+
+		// 计算过期时间
+		var expiresAt *time.Time
+		if req.ExpiresInDays != nil && *req.ExpiresInDays > 0 {
+			expireTime := time.Now().AddDate(0, 0, *req.ExpiresInDays)
+			expiresAt = &expireTime
+		}
+
+		// 创建激活码
+		activation := domain.ActivationKey{
+			Code:        code,
+			AppID:       req.AppID,
+			Status:      "active",
+			MaxUses:     req.MaxUses,
+			DeviceLimit: req.DeviceLimit,
+			Notes:       req.Notes,
+			ExpiresAt:   expiresAt,
+		}
+
+		if err := s.db.Create(&activation).Error; err != nil {
+			log.Printf("Failed to create activation code: %v", err)
+			continue
+		}
+
+		var expiresAtMs *int64
+		if expiresAt != nil {
+			timestamp := expiresAt.UnixMilli()
+			expiresAtMs = &timestamp
+		}
+
+		codes = append(codes, domain.CodeItem{
+			Code:      code,
+			ID:        activation.ID,
+			ExpiresAt: expiresAtMs,
+		})
+	}
+
+	return &domain.GenerateResponse{
+		Success:   true,
+		Generated: len(codes),
+		Codes:     codes,
+	}, nil
+}
+
+// ListActivationCodes 列出激活码
+func (s *ActivationService) ListActivationCodes(
+	req *domain.ListRequest,
+) (*domain.ListResponse, error) {
+	var activations []domain.ActivationKey
+	var total int64
+
+	query := s.db.Where("app_id = ?", req.AppID)
+
+	// 按状态筛选
+	if req.Status != "" {
+		query = query.Where("status = ?", req.Status)
+	}
+
+	// 计算总数
+	if err := query.Model(&domain.ActivationKey{}).Count(&total).Error; err != nil {
+		return nil, err
+	}
+
+	// 分页查询
+	offset := (req.Page - 1) * req.Limit
+	if err := query.Offset(offset).Limit(req.Limit).Find(&activations).Error; err != nil {
+		return nil, err
+	}
+
+	return &domain.ListResponse{
+		Success: true,
+		Total:   total,
+		Page:    req.Page,
+		Limit:   req.Limit,
+		Items:   activations,
+	}, nil
+}
+
+// RevokeActivationCode 撤销激活码
+func (s *ActivationService) RevokeActivationCode(appID, code string) error {
+	return s.db.Model(&domain.ActivationKey{}).
+		Where("app_id = ? AND code = ?", appID, code).
+		Update("status", "revoked").Error
+}
+
+// recordAuditLog 记录审计日志
+func (s *ActivationService) recordAuditLog(
+	activation *domain.ActivationKey,
+	req *domain.VerificationRequest,
+	action, result, errorMsg string,
+) {
+	deviceInfo, _ := json.Marshal(req.DeviceInfo)
+
+	auditLog := domain.AuditLog{
+		Action:       action,
+		ActivationID: &activation.ID,
+		DeviceID:     req.DeviceID,
+		Result:       result,
+		ErrorMessage: errorMsg,
+		DeviceInfo:   string(deviceInfo),
+	}
+
+	if err := s.db.Create(&auditLog).Error; err != nil {
+		log.Printf("Failed to create audit log: %v", err)
+	}
+}
+
+// generateSignature 生成响应签名
+func (s *ActivationService) generateSignature(
+	data *domain.ActivationData,
+	timestamp int64,
+	secretKey string,
+) string {
+	// 将数据序列化为 JSON
+	dataJSON, _ := json.Marshal(data)
+
+	// 构建签名数据：data + timestamp + secretKey
+	signData := string(dataJSON) + fmt.Sprintf("%d", timestamp) + secretKey
+
+	// 计算 HMAC-SHA256
+	h := hmac.New(sha256.New, []byte(secretKey))
+	h.Write([]byte(signData))
+
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+// generateCode 生成激活码 (XXXX-XXXX-XXXX-XXXX 格式)
+func generateCode() string {
+	uuid := uuid.New().String()
+	parts := []string{
+		uuid[0:4],
+		uuid[5:9],
+		uuid[10:14],
+		uuid[15:19],
+	}
+	return fmt.Sprintf("%s-%s-%s-%s", parts[0], parts[1], parts[2], parts[3])
+}
+
+// extractDeviceInfo 从设备信息中提取字段
+func extractDeviceInfo(deviceInfo map[string]interface{}, key string) string {
+	if val, ok := deviceInfo[key]; ok {
+		if strVal, ok := val.(string); ok {
+			return strVal
+		}
+	}
+	return ""
+}
