@@ -17,6 +17,12 @@ func SetupRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	// 初始化处理器
 	handlers.InitHandlers(cfg.JWTSecret)
 
+	// 将数据库实例添加到上下文
+	router.Use(func(c *gin.Context) {
+		c.Set("db", db)
+		c.Next()
+	})
+
 	// 应用中间件
 	router.Use(middleware.CORSMiddleware())
 	router.Use(middleware.LoggingMiddleware())
@@ -25,6 +31,9 @@ func SetupRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 
 	// 健康检查路由（不需要认证）
 	router.GET("/api/health", handlers.HealthCheck)
+
+	// 获取默认管理员 API Key 信息（用于登录页面显示）
+	router.GET("/api/default-admin-key", handlers.GetDefaultAdminKey)
 
 	// 认证 API 路由
 	authRoutes := router.Group("/api/activation")
@@ -47,6 +56,7 @@ func SetupRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	adminRoutes := router.Group("/api/admin")
 	adminRoutes.Use(middleware.APIKeyAuth(db))
 	adminRoutes.Use(middleware.RecordAPIKeyUsage(db))
+	adminRoutes.Use(middleware.AuditLoggerMiddleware(db))
 
 	// API Key 管理
 	apiKeyRoutes := adminRoutes.Group("/api-keys")
@@ -100,6 +110,7 @@ func SetupRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	})
 	router.Static("/css", "./web/css")
 	router.Static("/js", "./web/js")
+	router.Static("/libs", "./web/libs")
 	router.StaticFS("/static", gin.Dir("./web", false))
 
 	return router

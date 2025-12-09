@@ -41,14 +41,36 @@ func (s *StatisticsService) GetStatistics() (map[string]interface{}, error) {
 	var totalStats domain.Statistics
 	var dailyStats []domain.DailyStats
 
-	// 获取总体统计
+	// 从激活码表计算实时统计
+	var totalActivations int64
+	var activeKeys int64
+	var revokedKeys int64
+	var totalDevices int64
+	var distinctApps int64
+
+	s.db.Model(&domain.ActivationKey{}).Count(&totalActivations)
+	s.db.Model(&domain.ActivationKey{}).Where("status = ?", "active").Count(&activeKeys)
+	s.db.Model(&domain.ActivationKey{}).Where("status = ?", "revoked").Count(&revokedKeys)
+	s.db.Model(&domain.DeviceRecord{}).Count(&totalDevices)
+	s.db.Model(&domain.ActivationKey{}).Distinct("app_id").Count(&distinctApps)
+
+	// 获取总体统计（如果存在）
 	s.db.First(&totalStats)
 
 	// 获取最近7天的数据
 	dailyStats, _ = s.GetDailyStatistics(7)
 
+	// 返回实时计算的统计数据
 	return map[string]interface{}{
-		"total":      totalStats,
+		"total": map[string]interface{}{
+			"total_activations":        totalActivations,
+			"successful_verifications": totalDevices, // 设备数 = 成功验证数
+			"failed_verifications":     0,
+			"total_devices":            totalDevices,
+			"active_codes":             activeKeys,
+			"revoked_codes":            revokedKeys,
+			"distinct_apps":            distinctApps,
+		},
 		"daily":      dailyStats,
 		"last_7days": len(dailyStats),
 	}, nil
@@ -123,13 +145,47 @@ func (s *StatisticsService) GetAppStatistics(appID string) (*domain.Statistics, 
 	return &stats, nil
 }
 
-// GetTopApps 获取排名前N的应用
-func (s *StatisticsService) GetTopApps(limit int) ([]domain.Statistics, error) {
-	var stats []domain.Statistics
-	if err := s.db.Order("total_activations DESC").Limit(limit).Find(&stats).Error; err != nil {
+// GetTopApps 获取排名前N的应用（实时计算）
+func (s *StatisticsService) GetTopApps(limit int) ([]map[string]interface{}, error) {
+	type AppStats struct {
+		AppID string
+		Count int64
+	}
+
+	var apps []AppStats
+	// 获取按激活码数量排序的应用
+	if err := s.db.Model(&domain.ActivationKey{}).
+		Select("app_id, COUNT(*) as count").
+		Group("app_id").
+		Order("count DESC").
+		Limit(limit).
+		Scan(&apps).Error; err != nil {
 		return nil, err
 	}
-	return stats, nil
+
+	// 为每个应用获取详细统计
+	var result []map[string]interface{}
+	for _, app := range apps {
+		var deviceCount int64
+		var activeCount int64
+		var revokedCount int64
+
+		s.db.Model(&domain.DeviceRecord{}).Where("app_id = ?", app.AppID).Count(&deviceCount)
+		s.db.Model(&domain.ActivationKey{}).Where("app_id = ? AND status = ?", app.AppID, "active").Count(&activeCount)
+		s.db.Model(&domain.ActivationKey{}).Where("app_id = ? AND status = ?", app.AppID, "revoked").Count(&revokedCount)
+
+		result = append(result, map[string]interface{}{
+			"app_id":                   app.AppID,
+			"total_activations":        app.Count,
+			"total_devices":            deviceCount,
+			"active_codes":             activeCount,
+			"revoked_codes":            revokedCount,
+			"successful_verifications": deviceCount,
+			"failed_verifications":     0,
+		})
+	}
+
+	return result, nil
 }
 
 // GetTrendData 获取趋势数据

@@ -45,6 +45,12 @@ func Init(cfg *config.Config) error {
 		return fmt.Errorf("failed to create indexes: %w", err)
 	}
 
+	// 初始化默认管理员 API Key
+	if err := SeedDefaultAdminKey(); err != nil {
+		log.Printf("⚠️  初始化默认 API Key 失败: %v", err)
+		// 不影响应用启动，继续执行
+	}
+
 	return nil
 }
 

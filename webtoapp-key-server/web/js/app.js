@@ -30,10 +30,13 @@ function setupTabNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
     const tabContents = document.querySelectorAll('.tab-content');
 
+    console.log('【初始化】setupTabNavigation - 找到', navItems.length, '个 nav-item');
+
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
             const tabName = this.dataset.tab;
+            console.log('【导航】clicked tab:', tabName);
 
             // 移除所有活跃类
             navItems.forEach(nav => nav.classList.remove('active'));
@@ -47,6 +50,7 @@ function setupTabNavigation() {
             document.getElementById('page-title').textContent = this.textContent.trim();
 
             // 加载对应的数据
+            console.log('【导航】calling loadTabData for:', tabName);
             loadTabData(tabName);
         });
     });
@@ -399,19 +403,36 @@ function viewAppStats(appId) {
 
 // ========== 审计日志 ==========
 function loadLogs() {
-    const filterText = document.getElementById('log-filter')?.value || '';
-    const filterType = document.getElementById('log-type-filter')?.value || '';
+    console.log('【日志】loadLogs 函数被调用');
+    const page = 1;  // 暂时使用第一页
+    const limit = 20;
 
-    fetchAPI('/logs', {
+    console.log('【日志】准备请求 /logs?page=' + page + '&limit=' + limit);
+    
+    fetchAPI('/logs?page=' + page + '&limit=' + limit, {
         method: 'GET'
-    }).then(data => {
+    }).then(response => {
+        console.log('【日志】API 响应:', response);
+        
         const tbody = document.getElementById('logs-table');
+        console.log('【日志】tbody 元素:', tbody);
+        
+        if (!tbody) {
+            console.error('【错误】logs-table element not found');
+            return;
+        }
         tbody.innerHTML = '';
 
-        if (data && data.length > 0) {
-            data.forEach(log => {
+        // 处理响应数据
+        const logs = response.data || [];
+        console.log('【日志】logs 数组:', logs, '长度:', logs.length);
+        
+        if (logs && logs.length > 0) {
+            logs.forEach((log, index) => {
+                console.log('【日志】处理第', index, '条记录:', log);
+                
                 const row = document.createElement('tr');
-                const timestamp = new Date(log.timestamp).toLocaleString('zh-CN');
+                const timestamp = new Date(log.created_at).toLocaleString('zh-CN');
                 
                 row.innerHTML = `
                     <td>${timestamp}</td>
@@ -425,15 +446,20 @@ function loadLogs() {
                     </td>
                 `;
                 tbody.appendChild(row);
+                console.log('【日志】行已添加');
             });
+            
+            console.log('【日志】日志加载成功，共', logs.length, '条记录');
         } else {
-            const tbody = document.getElementById('logs-table');
+            console.log('【日志】没有日志数据，显示空状态');
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">暂无日志数据</td></tr>';
         }
     }).catch(error => {
-        // 日志API不可用时显示占位符
+        console.error('【错误】加载日志失败:', error);
         const tbody = document.getElementById('logs-table');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">暂无日志数据</td></tr>';
+        if (tbody) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">加载失败</td></tr>';
+        }
     });
 }
 

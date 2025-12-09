@@ -195,6 +195,15 @@
                 进入演示模式
             </button>
         </div>
+
+        <!-- 默认管理员 API Key 提示框 -->
+        <div id="admin-key-info" class="demo-credentials" style="display: none; background: #e8f5e9; border-color: #4caf50;">
+            <h3 style="color: #2e7d32;">✅ 默认管理员 API Key 已生成</h3>
+            <p style="color: #2e7d32; margin-bottom: 10px;">
+                系统已为您自动生成了一个默认管理员 API Key，用于首次登录和管理：
+            </p>
+            <div id="default-key-content"></div>
+        </div>
     </div>
 
     <script>
@@ -202,6 +211,40 @@
         if (localStorage.getItem('apiKey')) {
             window.location.href = '/index.html';
         }
+
+        // 加载默认管理员 API Key 信息
+        function loadDefaultAdminKey() {
+            fetch('/api/default-admin-key')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.has_default) {
+                        const infoDiv = document.getElementById('admin-key-info');
+                        const contentDiv = document.getElementById('default-key-content');
+                        
+                        infoDiv.style.display = 'block';
+                        contentDiv.innerHTML = `
+                            <p style="color: #2e7d32; font-family: monospace; background: #fff9c4; padding: 8px; border-radius: 4px; margin-bottom: 8px; word-break: break-all;">
+                                <strong>API Key:</strong> 请查看浏览器控制台或应用启动日志
+                            </p>
+                            <p style="color: #666; font-size: 12px;">
+                                💡 <strong>提示:</strong> 
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    <li>默认 Admin API Key 在 Docker 启动时自动生成</li>
+                                    <li>完整 Key 显示在应用启动日志中</li>
+                                    <li>如果丢失，可在 "API Key 管理" 中生成新的</li>
+                                    <li>首次使用后，请妥善保管您的 API Key</li>
+                                </ul>
+                            </p>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.log('获取默认 API Key 信息失败:', error);
+                });
+        }
+
+        // 页面加载时获取默认 API Key 信息
+        document.addEventListener('DOMContentLoaded', loadDefaultAdminKey);
 
         function handleLogin(event) {
             event.preventDefault();
