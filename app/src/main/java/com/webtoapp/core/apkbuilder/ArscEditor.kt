@@ -319,6 +319,19 @@ class ArscEditor {
     fun forceReplaceIconPaths(arscData: ByteArray): ByteArray {
         var result = arscData
 
+        // ========== 关键：替换 Adaptive Icon 入口 XML 为 PNG ==========
+        // mipmap-anydpi-v26/ic_launcher.xml -> mipmap-xxxhdpi/ic_launcher.png (长度相同：35字符)
+        result = replaceIconPathSuffix(
+            result,
+            "res/mipmap-anydpi-v26/ic_launcher.xml",
+            "res/mipmap-xxxhdpi/ic_launcher.png"
+        )
+        result = replaceIconPathSuffix(
+            result,
+            "res/mipmap-anydpi-v26/ic_launcher_round.xml",
+            "res/mipmap-xxxhdpi/ic_launcher_round.png"
+        )
+
         // ========== drawable 目录下的 foreground ==========
         result = replaceIconPathSuffix(
             result,
